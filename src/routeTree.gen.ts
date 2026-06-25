@@ -9,8 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StoricoRouteImport } from './routes/storico'
+import { Route as ShoppingRouteImport } from './routes/shopping'
+import { Route as PreparazioneRouteImport } from './routes/preparazione'
 import { Route as IndexRouteImport } from './routes/index'
 
+const StoricoRoute = StoricoRouteImport.update({
+  id: '/storico',
+  path: '/storico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShoppingRoute = ShoppingRouteImport.update({
+  id: '/shopping',
+  path: '/shopping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreparazioneRoute = PreparazioneRouteImport.update({
+  id: '/preparazione',
+  path: '/preparazione',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +37,61 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/preparazione': typeof PreparazioneRoute
+  '/shopping': typeof ShoppingRoute
+  '/storico': typeof StoricoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/preparazione': typeof PreparazioneRoute
+  '/shopping': typeof ShoppingRoute
+  '/storico': typeof StoricoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/preparazione': typeof PreparazioneRoute
+  '/shopping': typeof ShoppingRoute
+  '/storico': typeof StoricoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/preparazione' | '/shopping' | '/storico'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/preparazione' | '/shopping' | '/storico'
+  id: '__root__' | '/' | '/preparazione' | '/shopping' | '/storico'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PreparazioneRoute: typeof PreparazioneRoute
+  ShoppingRoute: typeof ShoppingRoute
+  StoricoRoute: typeof StoricoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/storico': {
+      id: '/storico'
+      path: '/storico'
+      fullPath: '/storico'
+      preLoaderRoute: typeof StoricoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shopping': {
+      id: '/shopping'
+      path: '/shopping'
+      fullPath: '/shopping'
+      preLoaderRoute: typeof ShoppingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preparazione': {
+      id: '/preparazione'
+      path: '/preparazione'
+      fullPath: '/preparazione'
+      preLoaderRoute: typeof PreparazioneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +104,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PreparazioneRoute: PreparazioneRoute,
+  ShoppingRoute: ShoppingRoute,
+  StoricoRoute: StoricoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
