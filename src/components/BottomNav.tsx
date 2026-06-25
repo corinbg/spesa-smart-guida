@@ -11,7 +11,7 @@ const tabs = [
 export function BottomNav() {
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-around px-2 py-1">
@@ -19,20 +19,15 @@ export function BottomNav() {
           <li key={to} className="flex-1">
             <Link
               to={to}
-              className="flex flex-col items-center justify-center gap-1 py-2.5 text-muted-foreground transition-colors"
+              className="flex flex-col items-center justify-center gap-0.5 py-2.5 text-muted-foreground transition-colors"
               activeProps={{ className: "!text-primary" }}
             >
               {({ isActive }) => (
                 <>
-                  <span
-                    className={cn(
-                      "flex h-9 w-14 items-center justify-center rounded-full transition-colors",
-                      isActive && "bg-primary/10",
-                    )}
-                  >
-                    <Icon className={cn("h-5 w-5", isActive && "stroke-[2.5]")} />
-                  </span>
-                  <span className={cn("text-[11px] font-medium", isActive && "font-semibold")}>
+                  <Icon
+                    className={cn("h-6 w-6 transition-all", isActive && "stroke-[2.5]")}
+                  />
+                  <span className={cn("text-[11px] font-medium", isActive && "font-bold")}>
                     {label}
                   </span>
                 </>

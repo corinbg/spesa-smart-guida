@@ -2,8 +2,6 @@
 @source "../src";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -25,6 +23,8 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-promo: var(--promo);
+  --color-promo-foreground: var(--promo-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -33,56 +33,35 @@
   --color-ring-offset-background: var(--background);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
-  --radius: 0.875rem;
-  /* Warm minimalist light theme — fresh greens */
-  --background: oklch(0.99 0.005 120);
-  --foreground: oklch(0.18 0.02 150);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 150);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 150);
-  --primary: oklch(0.55 0.14 150);
-  --primary-foreground: oklch(0.99 0.005 120);
-  --secondary: oklch(0.96 0.01 140);
-  --secondary-foreground: oklch(0.22 0.03 150);
-  --muted: oklch(0.95 0.008 140);
-  --muted-foreground: oklch(0.48 0.02 150);
-  --accent: oklch(0.92 0.04 145);
-  --accent-foreground: oklch(0.25 0.05 150);
-  --destructive: oklch(0.6 0.2 25);
-  --destructive-foreground: oklch(0.99 0.005 120);
-  --success: oklch(0.65 0.15 150);
-  --success-foreground: oklch(0.99 0.005 120);
-  --border: oklch(0.92 0.008 140);
-  --input: oklch(0.94 0.008 140);
-  --ring: oklch(0.55 0.14 150);
-}
-
-.dark {
-  --background: oklch(0.16 0.015 150);
-  --foreground: oklch(0.96 0.01 140);
-  --card: oklch(0.21 0.018 150);
-  --card-foreground: oklch(0.96 0.01 140);
-  --popover: oklch(0.21 0.018 150);
-  --popover-foreground: oklch(0.96 0.01 140);
-  --primary: oklch(0.72 0.16 150);
-  --primary-foreground: oklch(0.16 0.015 150);
-  --secondary: oklch(0.26 0.02 150);
-  --secondary-foreground: oklch(0.96 0.01 140);
-  --muted: oklch(0.24 0.018 150);
-  --muted-foreground: oklch(0.68 0.02 145);
-  --accent: oklch(0.3 0.04 150);
-  --accent-foreground: oklch(0.96 0.01 140);
-  --destructive: oklch(0.65 0.2 25);
-  --destructive-foreground: oklch(0.99 0.005 120);
-  --success: oklch(0.72 0.16 150);
-  --success-foreground: oklch(0.16 0.015 150);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.72 0.16 150);
+  --radius: 1rem;
+  /* Esselunga-inspired retail palette — light only */
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #005c3a;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #2d2d2d;
+  --muted: #f5f5f5;
+  --muted-foreground: #6b6b6b;
+  --accent: #e8f5ee;
+  --accent-foreground: #005c3a;
+  --promo: #ffc107;
+  --promo-foreground: #5d4037;
+  --destructive: #d32f2f;
+  --destructive-foreground: #ffffff;
+  --success: #005c3a;
+  --success-foreground: #ffffff;
+  --border: #e8e8e8;
+  --input: #f0f0f0;
+  --ring: #005c3a;
 }
 
 @layer base {
@@ -90,14 +69,28 @@
     border-color: var(--color-border);
   }
 
-  html, body {
+  html,
+  body {
     height: 100%;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
     -webkit-tap-highlight-color: transparent;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer utilities {
+  .retail-card {
+    border-radius: 1rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .retail-section {
+    background-color: #f5f5f5;
   }
 }

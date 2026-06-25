@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, History } from "lucide-react";
 
 import { fetchArchived, type ShoppingItem } from "@/lib/api";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/storico")({
@@ -44,25 +44,17 @@ function StoricoPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="flex items-center justify-between px-5 pt-6 pb-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Storico
-          </p>
-          <h1 className="truncate text-2xl font-bold tracking-tight">Spese passate</h1>
-        </div>
-        <ThemeToggle />
-      </header>
+      <PageHeader title="Spese passate" subtitle="Storico" />
 
-      <div className="space-y-5 px-5 pb-6">
+      <div className="retail-section flex-1 space-y-5 px-4 py-5">
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : groups.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border bg-card/50 px-6 py-12 text-center">
-            <History className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-            <p className="font-medium">Nessuna spesa archiviata</p>
+          <div className="retail-card border-2 border-dashed border-border bg-white/60 px-6 py-12 text-center">
+            <History className="mx-auto mb-3 h-10 w-10 text-primary" />
+            <p className="font-bold text-foreground">Nessuna spesa archiviata</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Le liste archiviate appariranno qui.
             </p>
@@ -70,24 +62,24 @@ function StoricoPage() {
         ) : (
           groups.map((g) => (
             <section key={g.key}>
-              <h2 className="mb-2 px-1 text-sm font-semibold capitalize text-muted-foreground">
+              <h2 className="mb-3 rounded-xl bg-accent px-3 py-2 text-sm font-extrabold capitalize text-foreground">
                 {g.label}
               </h2>
               <ul className="space-y-2">
                 {g.items.map((it) => (
                   <li
                     key={it.id}
-                    className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3"
+                    className="retail-card flex items-center gap-3 px-4 py-3.5"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="truncate font-medium">{it.prodotto}</p>
+                        <p className="truncate text-base font-bold text-foreground">{it.prodotto}</p>
                         {it.extra ? (
-                          <Badge variant="secondary" className="shrink-0 text-[10px]">
+                          <Badge variant="promo" className="shrink-0 text-[10px]">
                             Extra
                           </Badge>
                         ) : (
-                          <Badge className="shrink-0 bg-primary/15 text-primary text-[10px] hover:bg-primary/15">
+                          <Badge className="shrink-0 bg-accent text-primary text-[10px] hover:bg-accent">
                             AI
                           </Badge>
                         )}
@@ -101,7 +93,7 @@ function StoricoPage() {
                     {it.preso && (
                       <Badge
                         variant="outline"
-                        className="shrink-0 border-success/40 text-success text-[10px]"
+                        className="shrink-0 border-primary/40 text-primary text-[10px]"
                       >
                         Preso
                       </Badge>

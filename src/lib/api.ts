@@ -81,6 +81,21 @@ export async function deleteItem(id: string) {
   if (error) throw error;
 }
 
+export async function updateItem(
+  id: string,
+  input: { prodotto: string; quantita?: string | null; categoria?: string | null },
+) {
+  const { error } = await supabase
+    .from(TABLE)
+    .update({
+      prodotto: input.prodotto,
+      quantita: input.quantita?.trim() || null,
+      categoria: input.categoria?.trim() || null,
+    })
+    .eq("id", id);
+  if (error) throw error;
+}
+
 export async function archiveActive() {
   const { error } = await supabase
     .from(TABLE)
