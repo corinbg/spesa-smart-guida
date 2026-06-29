@@ -321,17 +321,9 @@ function ShoppingPage() {
                               key={p.id}
                               className="flex items-center gap-3 rounded-2xl px-1 py-3 transition-colors active:bg-secondary"
                             >
-                              <Checkbox
-                                id={`p-${p.id}`}
-                                checked={p.preso}
-                                onCheckedChange={(v) =>
-                                  toggleMut.mutate({ id: p.id, preso: Boolean(v) })
-                                }
-                                className="h-8 w-8"
-                              />
                               <label
                                 htmlFor={`p-${p.id}`}
-                              className={cn(
+                                className={cn(
                                   "flex-1 cursor-pointer select-none transition-all duration-300",
                                   p.preso
                                     ? "text-muted-foreground line-through opacity-50"
@@ -345,6 +337,14 @@ function ShoppingPage() {
                                   </span>
                                 )}
                               </label>
+                              <Checkbox
+                                id={`p-${p.id}`}
+                                checked={p.preso}
+                                onCheckedChange={(v) =>
+                                  toggleMut.mutate({ id: p.id, preso: Boolean(v) })
+                                }
+                                className="h-8 w-8 shrink-0"
+                              />
                             </li>
                           ))}
                         </ul>
