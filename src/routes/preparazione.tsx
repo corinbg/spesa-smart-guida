@@ -94,7 +94,7 @@ function PreparazionePage() {
       }
       await addAiItems(aiItems);
       qc.invalidateQueries({ queryKey: ["items", "active"] });
-      toast.success(`Lista importata (${aiItems.length} prodotti)`);
+      toast.success(`✨ Lista importata (${aiItems.length} prodotti)`);
     },
     onError: (e: Error) => toast.error(e.message || "Errore durante il caricamento"),
   });
@@ -105,7 +105,7 @@ function PreparazionePage() {
       qc.invalidateQueries({ queryKey: ["items", "active"] });
       setProdotto("");
       setQuantita("");
-      toast.success("Prodotto aggiunto");
+      toast.success("✅ Prodotto aggiunto");
     },
     onError: () => toast.error("Errore nell'aggiunta"),
   });
@@ -120,7 +120,7 @@ function PreparazionePage() {
     onSuccess: () => {
       clearRoute();
       qc.invalidateQueries({ queryKey: ["items"] });
-      toast.success("Spesa archiviata");
+      toast.success(`🎉 Spesa archiviata! Ottimo lavoro!`);
     },
     onError: () => toast.error("Errore nell'archiviazione"),
   });
@@ -151,7 +151,7 @@ function PreparazionePage() {
         trailing={
           <a
             href="/storico"
-            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-white/15 px-3 text-xs font-bold text-primary-foreground hover:bg-white/25"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-secondary px-3 text-xs font-bold text-foreground hover:bg-secondary/80"
           >
             Storico
           </a>
@@ -476,7 +476,7 @@ function ItemRow({ item, onDelete }: { item: ShoppingItem; onDelete: () => void 
 
 function EmptyState({ title, description }: { title: string; description: string }) {
   return (
-    <div className="retail-card border-2 border-dashed border-border bg-white/60 px-6 py-10 text-center">
+    <div className="retail-card border-2 border-dashed border-primary/25 bg-card/60 px-6 py-10 text-center">
       <p className="font-bold text-foreground">{title}</p>
       <p className="mt-1 text-sm text-muted-foreground">{description}</p>
     </div>

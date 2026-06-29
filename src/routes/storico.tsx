@@ -52,7 +52,7 @@ function StoricoPage() {
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : groups.length === 0 ? (
-          <div className="retail-card border-2 border-dashed border-border bg-white/60 px-6 py-12 text-center">
+          <div className="retail-card border-2 border-dashed border-primary/25 bg-card/60 px-6 py-12 text-center">
             <History className="mx-auto mb-3 h-10 w-10 text-primary" />
             <p className="font-bold text-foreground">Nessuna spesa archiviata</p>
             <p className="mt-1 text-sm text-muted-foreground">

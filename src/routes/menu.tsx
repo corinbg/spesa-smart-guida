@@ -23,6 +23,7 @@ import {
   type MealPlanDay,
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
+import { PinchZoomImage } from "@/components/PinchZoomImage";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -150,7 +151,7 @@ function MenuPage() {
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-10 w-10 shrink-0 rounded-full text-primary-foreground hover:bg-white/15 hover:text-primary-foreground"
+                className="h-10 w-10 shrink-0 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
                 aria-label="Impostazioni"
               >
                 <Settings className="h-5 w-5" />
@@ -257,7 +258,7 @@ function DayItem({ day, isToday }: { day: MealPlanDay; isToday: boolean }) {
   return (
     <AccordionItem
       value={day.id}
-      className="retail-card overflow-hidden border-0 px-4"
+      className={"retail-card overflow-hidden border-0 px-4 " + (isToday ? "glow-today" : "")}
     >
       <AccordionTrigger className="py-4 hover:no-underline">
         <div className="flex items-center gap-3">
@@ -265,8 +266,8 @@ function DayItem({ day, isToday }: { day: MealPlanDay; isToday: boolean }) {
             className={
               "flex h-9 w-9 items-center justify-center rounded-full text-sm font-extrabold " +
               (isToday
-                ? "bg-primary text-primary-foreground"
-                : "bg-accent text-primary")
+                ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                : "bg-accent text-accent-foreground")
             }
           >
             {day.giorno.slice(0, 3)}
@@ -293,11 +294,11 @@ function DayItem({ day, isToday }: { day: MealPlanDay; isToday: boolean }) {
 
 function MealCard({ meal }: { meal: Meal }) {
   return (
-    <li className="relative rounded-2xl bg-white p-4 pr-3 shadow-sm ring-1 ring-border/60">
+    <li className="relative rounded-2xl bg-card p-4 pr-3 shadow-sm ring-1 ring-primary/10">
       <p className="text-sm font-extrabold text-primary">
         {emojiForTipo(meal.tipo)} {meal.tipo}
       </p>
-      <p className="mt-1 pr-2 text-sm font-medium text-foreground/85 leading-snug">
+      <p className="mt-1 pr-2 whitespace-pre-line text-sm font-medium text-foreground/85 leading-snug">
         {meal.descrizione}
       </p>
       {meal.macro && (
@@ -320,7 +321,7 @@ function EmptyState({
 }) {
   return (
     <div className="retail-card flex flex-col items-center px-6 py-10 text-center">
-      <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+      <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 shadow-md shadow-primary/15">
         <UtensilsCrossed className="h-8 w-8 text-primary" />
       </span>
       <h2 className="text-lg font-extrabold text-foreground">
@@ -387,16 +388,15 @@ function PlanImagePreview({ src }: { src: string }) {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="flex h-[100dvh] max-h-[100dvh] w-full max-w-none flex-col gap-0 border-0 bg-black/95 p-0 sm:rounded-none [&>button]:right-3 [&>button]:top-[calc(0.75rem+env(safe-area-inset-top))] [&>button]:z-10 [&>button]:text-white [&>button]:opacity-90 [&>button]:hover:opacity-100"
+          className="fixed inset-0 left-0 top-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 border-0 bg-black/95 p-0 sm:rounded-none [&>button]:right-3 [&>button]:top-[calc(0.75rem+env(safe-area-inset-top))] [&>button]:z-10 [&>button]:text-white [&>button]:opacity-90 [&>button]:hover:opacity-100"
           aria-describedby={undefined}
         >
           <DialogTitle className="sr-only">Piano alimentare originale</DialogTitle>
-          <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-4 pt-[calc(3rem+env(safe-area-inset-top))]">
-            <img
-              src={src}
-              alt="Piano alimentare caricato"
-              className="max-h-none w-full max-w-full object-contain"
-            />
+          <div className="relative min-h-0 flex-1 pt-[calc(3rem+env(safe-area-inset-top))]">
+            {open && <PinchZoomImage src={src} alt="Piano alimentare caricato" />}
+            <p className="pointer-events-none absolute inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] text-center text-xs text-white/45">
+              Pizzica per ingrandire · doppio tap per zoom
+            </p>
           </div>
         </DialogContent>
       </Dialog>

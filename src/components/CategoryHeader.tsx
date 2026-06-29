@@ -1,4 +1,5 @@
 import { getCategoryIcon } from "@/lib/categories";
+import { cn } from "@/lib/utils";
 
 type CategoryHeaderProps = {
   categoria: string;
@@ -10,11 +11,12 @@ export function CategoryHeader({ categoria, count, progress }: CategoryHeaderPro
   const Icon = getCategoryIcon(categoria);
   const pct =
     progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : null;
+  const isComplete = pct === 100;
 
   return (
     <div className="mb-3">
-      <div className="flex items-center gap-3 rounded-xl bg-accent px-3 py-2.5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/15">
+      <div className="flex items-center gap-3 rounded-xl bg-accent px-3 py-2.5 ring-1 ring-primary/10">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/20">
           <Icon className="h-5 w-5 text-primary" strokeWidth={2.25} />
         </span>
         <div className="min-w-0 flex-1">
@@ -26,13 +28,21 @@ export function CategoryHeader({ categoria, count, progress }: CategoryHeaderPro
           )}
         </div>
         {pct !== null && (
-          <span className="shrink-0 text-xs font-bold text-primary">{pct}%</span>
+          <span
+            className={cn(
+              "shrink-0 text-xs font-bold",
+              isComplete ? "text-promo" : "text-primary",
+            )}
+          >
+            {isComplete ? "✓ " : ""}
+            {pct}%
+          </span>
         )}
       </div>
       {pct !== null && (
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-primary/15">
+        <div className="dopamine-progress-track mt-1.5">
           <div
-            className="h-full rounded-full bg-primary transition-all duration-300"
+            className={cn("dopamine-progress-fill", isComplete && "is-complete")}
             style={{ width: `${pct}%` }}
           />
         </div>

@@ -38,30 +38,30 @@
 
 :root {
   --radius: 1rem;
-  /* Esselunga-inspired retail palette — light only */
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
-  --primary: #005c3a;
-  --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #2d2d2d;
-  --muted: #f5f5f5;
-  --muted-foreground: #6b6b6b;
-  --accent: #e8f5ee;
-  --accent-foreground: #005c3a;
-  --promo: #ffc107;
-  --promo-foreground: #5d4037;
-  --destructive: #d32f2f;
+  /* Dark retail palette — default */
+  --background: #0a0e14;
+  --foreground: #eef2f7;
+  --card: #141a24;
+  --card-foreground: #eef2f7;
+  --popover: #1a2230;
+  --popover-foreground: #eef2f7;
+  --primary: #2dd4bf;
+  --primary-foreground: #042f2e;
+  --secondary: #1c2433;
+  --secondary-foreground: #d8e2ef;
+  --muted: #161d2a;
+  --muted-foreground: #8b9cb5;
+  --accent: #0f2a28;
+  --accent-foreground: #5eead4;
+  --promo: #fbbf24;
+  --promo-foreground: #1a1400;
+  --destructive: #f87171;
   --destructive-foreground: #ffffff;
-  --success: #005c3a;
-  --success-foreground: #ffffff;
-  --border: #e8e8e8;
-  --input: #f0f0f0;
-  --ring: #005c3a;
+  --success: #34d399;
+  --success-foreground: #042f2e;
+  --border: #2a3548;
+  --input: #1c2433;
+  --ring: #2dd4bf;
 }
 
 @layer base {
@@ -83,14 +83,121 @@
   }
 }
 
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 8px color-mix(in srgb, var(--primary) 45%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 20px color-mix(in srgb, var(--primary) 70%, transparent),
+      0 0 40px color-mix(in srgb, var(--promo) 25%, transparent);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-24px) scale(1.1);
+  }
+}
+
 @layer utilities {
   .retail-card {
     border-radius: 1rem;
-    background-color: #ffffff;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.35),
+      0 0 0 1px color-mix(in srgb, var(--primary) 6%, transparent);
   }
 
   .retail-section {
-    background-color: #f5f5f5;
+    background-color: var(--background);
+    background-image: radial-gradient(
+      ellipse 80% 50% at 50% -10%,
+      color-mix(in srgb, var(--primary) 12%, transparent),
+      transparent
+    );
+  }
+
+  .dopamine-progress-track {
+    height: 0.625rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--primary) 18%, transparent);
+  }
+
+  .dopamine-progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--primary), var(--promo));
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 55%, transparent);
+  }
+
+  .dopamine-progress-fill.is-complete {
+    animation: pulse-glow 1.5s ease-in-out infinite;
+  }
+
+  .animate-pop {
+    animation: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .header-shimmer {
+    display: none;
+  }
+
+  .glow-today {
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--primary) 50%, transparent),
+      0 0 16px color-mix(in srgb, var(--primary) 35%, transparent);
+  }
+
+  .btn-dopamine {
+    background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 65%, #0ea5e9));
+    box-shadow:
+      0 4px 16px color-mix(in srgb, var(--primary) 35%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease,
+      filter 0.15s ease;
+  }
+
+  .btn-dopamine:hover {
+    filter: brightness(1.08);
+    box-shadow:
+      0 6px 24px color-mix(in srgb, var(--primary) 50%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-dopamine:active {
+    transform: scale(0.97);
   }
 }

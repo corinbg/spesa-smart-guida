@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, MapPin, RotateCcw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -89,7 +89,7 @@ function ShoppingPage() {
         toast.warning("Nessun percorso restituito");
       } else {
         saveRoute(supermercato, groups);
-        toast.success("Percorso pronto");
+        toast.success("Percorso pronto 🗺️");
       }
     },
     onError: (e: Error) => toast.error(e.message || "Errore"),
@@ -131,6 +131,18 @@ function ShoppingPage() {
   const total = items.length;
   const done = total - remaining;
   const showSelection = route === null;
+  const isComplete = total > 0 && done === total;
+  const celebratedRef = useRef(false);
+
+  useEffect(() => {
+    if (isComplete && !celebratedRef.current) {
+      celebratedRef.current = true;
+      toast.success("🎉 Spesa completata! Sei un campione!", { duration: 4500 });
+    }
+    if (!isComplete) {
+      celebratedRef.current = false;
+    }
+  }, [isComplete]);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -140,14 +152,21 @@ function ShoppingPage() {
         {total > 0 && !showSelection && (
           <div className="retail-card p-4">
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="font-bold text-foreground">Progresso spesa</span>
-              <span className="font-bold text-primary">
+              <span className="font-bold text-foreground">
+                {isComplete ? "🎉 Progresso spesa" : "Progresso spesa"}
+              </span>
+              <span
+                className={cn(
+                  "font-extrabold",
+                  isComplete ? "text-promo" : "text-primary",
+                )}
+              >
                 {done}/{total}
               </span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-primary/15">
+            <div className="dopamine-progress-track">
               <div
-                className="h-full rounded-full bg-primary transition-all duration-300"
+                className={cn("dopamine-progress-fill", isComplete && "is-complete")}
                 style={{ width: total > 0 ? `${(done / total) * 100}%` : "0%" }}
               />
             </div>
@@ -161,7 +180,7 @@ function ShoppingPage() {
                 Supermercato
               </label>
               <Select value={supermercato} onValueChange={setSupermercato}>
-                <SelectTrigger className="h-12 rounded-xl border-border bg-white text-base">
+                <SelectTrigger className="h-12 rounded-xl border-border bg-card text-base">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -197,7 +216,7 @@ function ShoppingPage() {
               </p>
             </section>
 
-            <div className="retail-card border-2 border-dashed border-border bg-white/60 px-6 py-12 text-center">
+            <div className="retail-card border-2 border-dashed border-primary/25 bg-card/60 px-6 py-12 text-center">
               <MapPin className="mx-auto mb-3 h-10 w-10 text-primary" />
               <p className="font-bold text-foreground">Pronto per iniziare</p>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -234,7 +253,7 @@ function ShoppingPage() {
             </section>
 
             {route!.length === 0 ? (
-              <div className="retail-card border-2 border-dashed border-border bg-white/60 px-6 py-10 text-center">
+              <div className="retail-card border-2 border-dashed border-border bg-card/60 px-6 py-10 text-center">
                 <p className="text-sm text-muted-foreground">Nessun reparto restituito.</p>
               </div>
             ) : (
@@ -248,6 +267,7 @@ function ShoppingPage() {
                   const doneDept = g.prodotti.filter((p) => p.preso).length;
                   const DeptIcon = getCategoryIcon(g.reparto);
                   const pct = totalDept > 0 ? Math.round((doneDept / totalDept) * 100) : 0;
+                  const deptComplete = pct === 100;
 
                   return (
                     <AccordionItem
@@ -257,7 +277,7 @@ function ShoppingPage() {
                     >
                       <AccordionTrigger className="px-4 py-4 hover:no-underline">
                         <div className="flex flex-1 items-center gap-3 text-left">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-extrabold text-primary-foreground">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-extrabold text-primary-foreground shadow-md shadow-primary/25">
                             {g.ordine ?? idx + 1}
                           </span>
                           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent">
@@ -269,13 +289,24 @@ function ShoppingPage() {
                               {doneDept}/{totalDept} completati
                             </p>
                           </div>
-                          <span className="shrink-0 text-xs font-bold text-primary">{pct}%</span>
+                          <span
+                            className={cn(
+                              "shrink-0 text-xs font-bold",
+                              deptComplete ? "text-promo" : "text-primary",
+                            )}
+                          >
+                            {deptComplete ? "✓ " : ""}
+                            {pct}%
+                          </span>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4 pt-0">
-                        <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-primary/15">
+                        <div className="dopamine-progress-track mb-3">
                           <div
-                            className="h-full rounded-full bg-primary transition-all duration-300"
+                            className={cn(
+                              "dopamine-progress-fill",
+                              deptComplete && "is-complete",
+                            )}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -300,10 +331,10 @@ function ShoppingPage() {
                               />
                               <label
                                 htmlFor={`p-${p.id}`}
-                                className={cn(
-                                  "flex-1 cursor-pointer select-none transition-all",
+                              className={cn(
+                                  "flex-1 cursor-pointer select-none transition-all duration-300",
                                   p.preso
-                                    ? "text-muted-foreground line-through opacity-55"
+                                    ? "text-muted-foreground line-through opacity-50"
                                     : "text-foreground",
                                 )}
                               >

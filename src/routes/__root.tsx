@@ -64,7 +64,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
       },
-      { name: "theme-color", content: "#005c3a" },
+      { name: "theme-color", content: "#0a0e14" },
       { title: "Lista Spesa" },
       {
         name: "description",
@@ -124,7 +124,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-white text-foreground">
+      <div className="min-h-screen bg-background text-foreground">
         <div className="mx-auto flex min-h-screen max-w-md flex-col pb-[calc(72px+env(safe-area-inset-bottom))]">
           <Outlet />
         </div>
