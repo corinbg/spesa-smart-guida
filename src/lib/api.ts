@@ -145,6 +145,7 @@ export type MealPlanDay = {
   id: string;
   giorno: string;
   pasti: Meal[];
+  image_url: string | null;
   created_at: string;
 };
 
