@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ClipboardList, ShoppingCart, History } from "lucide-react";
+import { UtensilsCrossed, ClipboardList, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { to: "/preparazione", label: "Preparazione", Icon: ClipboardList },
-  { to: "/shopping", label: "Shopping", Icon: ShoppingCart },
-  { to: "/storico", label: "Storico", Icon: History },
+  { to: "/menu", label: "Menu", Icon: UtensilsCrossed },
+  { to: "/preparazione", label: "Spesa", Icon: ClipboardList },
+  { to: "/shopping", label: "In Negozio", Icon: ShoppingCart },
 ] as const;
 
 export function BottomNav() {
