@@ -1,0 +1,1 @@
+ALTER TABLE public.meal_plan ADD COLUMN IF NOT EXISTS image_url text;
