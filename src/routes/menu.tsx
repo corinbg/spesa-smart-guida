@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Loader2,
   Upload,
@@ -22,15 +22,16 @@ import {
   type Meal,
   type MealPlanDay,
 } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { PinchZoomImage } from "@/components/PinchZoomImage";
 import { Button } from "@/components/ui/button";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -129,11 +130,6 @@ function MenuPage() {
     [plan],
   );
 
-  const defaultOpen = useMemo(() => {
-    const todayDay = orderedDays.find((d) => d.giorno === todayName);
-    return todayDay?.id ?? orderedDays[0]?.id ?? "";
-  }, [orderedDays, todayName]);
-
   const hasPlan = orderedDays.length > 0;
   const planImageUrl = useMemo(
     () => orderedDays.find((d) => d.image_url)?.image_url ?? null,
@@ -215,18 +211,9 @@ function MenuPage() {
             {planImageUrl && <PlanImagePreview src={planImageUrl} />}
             <p className="px-1 text-sm text-muted-foreground">
               Oggi è <span className="font-bold text-foreground">{todayName}</span>.
-              Tocca un giorno per vedere i pasti.
+              Scorri lateralmente per vedere gli altri giorni.
             </p>
-            <Accordion
-              type="single"
-              collapsible
-              defaultValue={defaultOpen}
-              className="space-y-3"
-            >
-              {orderedDays.map((day) => (
-                <DayItem key={day.id} day={day} isToday={day.giorno === todayName} />
-              ))}
-            </Accordion>
+            <DayMealsCarousel days={orderedDays} todayName={todayName} />
 
             <Button
               variant="outline"
@@ -254,41 +241,113 @@ function MenuPage() {
   );
 }
 
-function DayItem({ day, isToday }: { day: MealPlanDay; isToday: boolean }) {
+function DayMealsCarousel({
+  days,
+  todayName,
+}: {
+  days: MealPlanDay[];
+  todayName: string;
+}) {
+  const [api, setApi] = useState<CarouselApi>();
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const todayIndex = useMemo(
+    () => Math.max(0, days.findIndex((d) => d.giorno === todayName)),
+    [days, todayName],
+  );
+
+  const [selectedIndex, setSelectedIndex] = useState(todayIndex);
+
+  useEffect(() => {
+    if (!api) return;
+
+    const onSelect = () => setSelectedIndex(api.selectedScrollSnap());
+    api.on("select", onSelect);
+    onSelect();
+
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api]);
+
+  useEffect(() => {
+    tabRefs.current[selectedIndex]?.scrollIntoView({
+      inline: "center",
+      block: "nearest",
+      behavior: "smooth",
+    });
+  }, [selectedIndex]);
+
   return (
-    <AccordionItem
-      value={day.id}
-      className={"retail-card overflow-hidden border-0 px-4 " + (isToday ? "glow-today" : "")}
-    >
-      <AccordionTrigger className="py-4 hover:no-underline">
-        <div className="flex items-center gap-3">
-          <span
-            className={
-              "flex h-9 w-9 items-center justify-center rounded-full text-sm font-extrabold " +
-              (isToday
-                ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                : "bg-accent text-accent-foreground")
-            }
-          >
-            {day.giorno.slice(0, 3)}
-          </span>
-          <div className="text-left">
-            <p className="text-base font-extrabold text-foreground">{day.giorno}</p>
-            <p className="text-xs text-muted-foreground">
-              {day.pasti.length} past{day.pasti.length === 1 ? "o" : "i"}
-              {isToday && " · oggi"}
-            </p>
-          </div>
-        </div>
-      </AccordionTrigger>
-      <AccordionContent className="pb-4">
-        <ul className="space-y-3">
-          {day.pasti.map((m, i) => (
-            <MealCard key={i} meal={m} />
+    <div className="space-y-3">
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {days.map((day, i) => {
+          const isToday = day.giorno === todayName;
+          const isSelected = i === selectedIndex;
+
+          return (
+            <button
+              key={day.id}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
+              type="button"
+              onClick={() => api?.scrollTo(i)}
+              className={cn(
+                "shrink-0 rounded-full px-4 py-2 text-sm font-extrabold transition-colors",
+                isSelected
+                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                  : "bg-accent text-accent-foreground",
+                isToday && !isSelected && "ring-2 ring-primary/40",
+              )}
+            >
+              {day.giorno.slice(0, 3)}
+            </button>
+          );
+        })}
+      </div>
+
+      <Carousel setApi={setApi} opts={{ startIndex: todayIndex }} className="w-full">
+        <CarouselContent className="-ml-0">
+          {days.map((day) => (
+            <CarouselItem key={day.id} className="pl-0">
+              <DayMealsPanel day={day} isToday={day.giorno === todayName} />
+            </CarouselItem>
           ))}
-        </ul>
-      </AccordionContent>
-    </AccordionItem>
+        </CarouselContent>
+      </Carousel>
+    </div>
+  );
+}
+
+function DayMealsPanel({ day, isToday }: { day: MealPlanDay; isToday: boolean }) {
+  return (
+    <div className={cn("retail-card overflow-hidden border-0 px-4 py-4", isToday && "glow-today")}>
+      <div className="mb-4 flex items-center gap-3">
+        <span
+          className={cn(
+            "flex h-9 w-9 items-center justify-center rounded-full text-sm font-extrabold",
+            isToday
+              ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+              : "bg-accent text-accent-foreground",
+          )}
+        >
+          {day.giorno.slice(0, 3)}
+        </span>
+        <div>
+          <p className="text-base font-extrabold text-foreground">{day.giorno}</p>
+          <p className="text-xs text-muted-foreground">
+            {day.pasti.length} past{day.pasti.length === 1 ? "o" : "i"}
+            {isToday && " · oggi"}
+          </p>
+        </div>
+      </div>
+      <ul className="space-y-3">
+        {day.pasti.map((m, i) => (
+          <MealCard key={i} meal={m} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
