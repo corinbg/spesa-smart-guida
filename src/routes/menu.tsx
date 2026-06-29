@@ -249,6 +249,7 @@ function DayMealsCarousel({
   todayName: string;
 }) {
   const [api, setApi] = useState<CarouselApi>();
+  const tabStripRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const todayIndex = useMemo(
@@ -271,16 +272,18 @@ function DayMealsCarousel({
   }, [api]);
 
   useEffect(() => {
-    tabRefs.current[selectedIndex]?.scrollIntoView({
-      inline: "center",
-      block: "nearest",
-      behavior: "smooth",
-    });
+    const strip = tabStripRef.current;
+    const tab = tabRefs.current[selectedIndex];
+    if (!strip || !tab) return;
+
+    const target =
+      tab.offsetLeft - strip.clientWidth / 2 + tab.offsetWidth / 2;
+    strip.scrollTo({ left: target, behavior: "smooth" });
   }, [selectedIndex]);
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div ref={tabStripRef} className="flex gap-2 overflow-x-auto pb-1">
         {days.map((day, i) => {
           const isToday = day.giorno === todayName;
           const isSelected = i === selectedIndex;
@@ -307,7 +310,11 @@ function DayMealsCarousel({
         })}
       </div>
 
-      <Carousel setApi={setApi} opts={{ startIndex: todayIndex }} className="w-full">
+      <Carousel
+        setApi={setApi}
+        opts={{ startIndex: todayIndex }}
+        className="w-full overscroll-x-contain"
+      >
         <CarouselContent className="-ml-0">
           {days.map((day) => (
             <CarouselItem key={day.id} className="pl-0">
