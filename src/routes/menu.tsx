@@ -200,6 +200,11 @@ function MenuPage() {
           />
         ) : (
           <>
+            {orderedDays.find((d) => d.image_url)?.image_url && (
+              <PlanImagePreview
+                src={orderedDays.find((d) => d.image_url)!.image_url!}
+              />
+            )}
             <p className="px-1 text-sm text-muted-foreground">
               Oggi è <span className="font-bold text-foreground">{todayName}</span>.
               Tocca un giorno per vedere i pasti.
