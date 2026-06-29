@@ -353,3 +353,50 @@ function EmptyState({
     </div>
   );
 }
+
+function PlanImagePreview({ src }: { src: string }) {
+  const [zoom, setZoom] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setZoom(true)}
+        className="retail-card group relative block w-full overflow-hidden p-0 text-left"
+        aria-label="Vedi immagine piano alimentare"
+      >
+        <img
+          src={src}
+          alt="Piano alimentare caricato"
+          className="block max-h-56 w-full object-cover transition-transform group-hover:scale-[1.02]"
+        />
+        <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+          <ImageIcon className="h-3 w-3" />
+          Piano originale
+        </span>
+      </button>
+      {zoom && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+          onClick={() => setZoom(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            className="absolute right-4 top-[calc(1rem+env(safe-area-inset-top))] inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
+            onClick={() => setZoom(false)}
+            aria-label="Chiudi"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <img
+            src={src}
+            alt="Piano alimentare caricato"
+            className="max-h-full max-w-full rounded-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </>
+  );
+}
