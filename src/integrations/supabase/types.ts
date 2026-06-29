@@ -19,18 +19,21 @@ export type Database = {
           created_at: string
           giorno: string
           id: string
+          image_url: string | null
           pasti: Json
         }
         Insert: {
           created_at?: string
           giorno: string
           id?: string
+          image_url?: string | null
           pasti?: Json
         }
         Update: {
           created_at?: string
           giorno?: string
           id?: string
+          image_url?: string | null
           pasti?: Json
         }
         Relationships: []
