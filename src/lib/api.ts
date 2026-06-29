@@ -190,12 +190,14 @@ export async function fetchMealPlan(): Promise<MealPlanDay[]> {
     id: string;
     giorno: string;
     pasti: unknown;
+    image_url: string | null;
     created_at: string;
   }>;
   const days: MealPlanDay[] = rows.map((r) => ({
     id: r.id,
     giorno: normalizeGiorno(r.giorno),
     pasti: Array.isArray(r.pasti) ? (r.pasti as Meal[]) : [],
+    image_url: r.image_url ?? null,
     created_at: r.created_at,
   }));
   days.sort(
@@ -208,19 +210,64 @@ export async function fetchMealPlan(): Promise<MealPlanDay[]> {
 
 const WEBHOOK_PIANO = "https://n8n.n8n-boostia.uk/webhook/pianoalimentare";
 
+async function fileToCompressedDataUrl(
+  file: File,
+  maxDim = 1280,
+  quality = 0.8,
+): Promise<string> {
+  // Fallback for non-image or environments without canvas
+  if (!file.type.startsWith("image/") || typeof document === "undefined") {
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error("image load failed"));
+    im.src = dataUrl;
+  });
+  const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return dataUrl;
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
 export async function uploadMealPlanImage(file: File): Promise<MealPlanDay[]> {
-  const fd = new FormData();
-  fd.append("file", file, file.name);
-  const res = await fetch(WEBHOOK_PIANO, { method: "POST", body: fd });
-  if (!res.ok) throw new Error(`Errore upload piano (${res.status})`);
-  const json = await res.json();
-  const root = Array.isArray(json) ? json[0] : json;
+  // Compress + encode in parallel with the webhook call
+  const [imageDataUrl, webhookJson] = await Promise.all([
+    fileToCompressedDataUrl(file).catch(() => null),
+    (async () => {
+      const fd = new FormData();
+      fd.append("file", file, file.name);
+      const res = await fetch(WEBHOOK_PIANO, { method: "POST", body: fd });
+      if (!res.ok) throw new Error(`Errore upload piano (${res.status})`);
+      return res.json();
+    })(),
+  ]);
+  const root = Array.isArray(webhookJson) ? webhookJson[0] : webhookJson;
   const menu: Array<{ giorno: string; pasti: Meal[] }> =
     root?.menu ?? root?.data?.menu ?? [];
   if (!menu.length) return [];
   const rows = menu.map((d) => ({
     giorno: normalizeGiorno(d.giorno),
     pasti: (d.pasti ?? []) as unknown as Meal[],
+    image_url: imageDataUrl,
   }));
   // Clear existing plan first
   await deleteMealPlan();
