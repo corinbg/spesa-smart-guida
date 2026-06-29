@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Loader2,
   Upload,
@@ -9,6 +9,8 @@ import {
   Sparkles,
   History,
   UtensilsCrossed,
+  ImageIcon,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
