@@ -10,7 +10,7 @@ import {
   History,
   UtensilsCrossed,
   ImageIcon,
-  X,
+  ZoomIn,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,6 +46,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/menu")({
   head: () => ({ meta: [{ title: "Menu — Piano Alimentare" }] }),
@@ -129,6 +134,10 @@ function MenuPage() {
   }, [orderedDays, todayName]);
 
   const hasPlan = orderedDays.length > 0;
+  const planImageUrl = useMemo(
+    () => orderedDays.find((d) => d.image_url)?.image_url ?? null,
+    [orderedDays],
+  );
 
   return (
     <div className="flex flex-1 flex-col">
@@ -202,11 +211,7 @@ function MenuPage() {
           />
         ) : (
           <>
-            {orderedDays.find((d) => d.image_url)?.image_url && (
-              <PlanImagePreview
-                src={orderedDays.find((d) => d.image_url)!.image_url!}
-              />
-            )}
+            {planImageUrl && <PlanImagePreview src={planImageUrl} />}
             <p className="px-1 text-sm text-muted-foreground">
               Oggi è <span className="font-bold text-foreground">{todayName}</span>.
               Tocca un giorno per vedere i pasti.
@@ -355,48 +360,46 @@ function EmptyState({
 }
 
 function PlanImagePreview({ src }: { src: string }) {
-  const [zoom, setZoom] = useState(false);
+  const [open, setOpen] = useState(false);
+
   return (
     <>
       <button
         type="button"
-        onClick={() => setZoom(true)}
+        onClick={() => setOpen(true)}
         className="retail-card group relative block w-full overflow-hidden p-0 text-left"
-        aria-label="Vedi immagine piano alimentare"
+        aria-label="Ingrandisci immagine piano alimentare"
       >
         <img
           src={src}
           alt="Piano alimentare caricato"
-          className="block max-h-56 w-full object-cover transition-transform group-hover:scale-[1.02]"
+          className="block max-h-56 w-full object-cover transition-transform group-active:scale-[1.02]"
         />
+        <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8 text-[11px] font-bold text-white">
+          <ZoomIn className="h-3.5 w-3.5" />
+          Tocca per ingrandire
+        </span>
         <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
           <ImageIcon className="h-3 w-3" />
           Piano originale
         </span>
       </button>
-      {zoom && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
-          onClick={() => setZoom(false)}
-          role="dialog"
-          aria-modal="true"
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          className="flex h-[100dvh] max-h-[100dvh] w-full max-w-none flex-col gap-0 border-0 bg-black/95 p-0 sm:rounded-none [&>button]:right-3 [&>button]:top-[calc(0.75rem+env(safe-area-inset-top))] [&>button]:z-10 [&>button]:text-white [&>button]:opacity-90 [&>button]:hover:opacity-100"
+          aria-describedby={undefined}
         >
-          <button
-            type="button"
-            className="absolute right-4 top-[calc(1rem+env(safe-area-inset-top))] inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"
-            onClick={() => setZoom(false)}
-            aria-label="Chiudi"
-          >
-            <X className="h-5 w-5" />
-          </button>
-          <img
-            src={src}
-            alt="Piano alimentare caricato"
-            className="max-h-full max-w-full rounded-2xl object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+          <DialogTitle className="sr-only">Piano alimentare originale</DialogTitle>
+          <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-4 pt-[calc(3rem+env(safe-area-inset-top))]">
+            <img
+              src={src}
+              alt="Piano alimentare caricato"
+              className="max-h-none w-full max-w-full object-contain"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

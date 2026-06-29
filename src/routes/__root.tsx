@@ -6,7 +6,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -111,6 +111,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const didSetHome = useRef(false);
+
+  useEffect(() => {
+    if (didSetHome.current) return;
+    didSetHome.current = true;
+    if (router.state.location.pathname !== "/menu") {
+      void router.navigate({ to: "/menu", replace: true });
+    }
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
