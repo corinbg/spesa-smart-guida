@@ -157,13 +157,12 @@ function PreparazionePage() {
             <span className="text-sm font-bold text-foreground">Importa con AI</span>
           </div>
           <p className="mb-4 text-sm text-muted-foreground">
-            Scatta una foto della tua lista scritta a mano o stampata.
+            Carica o scatta una foto della tua lista scritta a mano o stampata.
           </p>
           <input
             ref={fileRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={onPickFile}
           />
