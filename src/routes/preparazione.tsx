@@ -145,7 +145,18 @@ function PreparazionePage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="La tua lista" subtitle="Preparazione" />
+      <PageHeader
+        title="La tua lista"
+        subtitle="Preparazione"
+        trailing={
+          <a
+            href="/storico"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-white/15 px-3 text-xs font-bold text-primary-foreground hover:bg-white/25"
+          >
+            Storico
+          </a>
+        }
+      />
 
       <div className="retail-section flex-1 space-y-5 px-4 py-5">
         {/* AI Upload */}

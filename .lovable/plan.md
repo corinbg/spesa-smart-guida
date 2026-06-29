@@ -1,88 +1,52 @@
+## Weekly Meal Plan — new homepage
 
-## Overview
+### 1. Database
+New migration creating `public.meal_plan`:
+- `id uuid pk default gen_random_uuid()`
+- `giorno text not null` (Lunedì…Domenica)
+- `pasti jsonb not null` (array of meals: `{ tipo, descrizione, macro }`)
+- `created_at timestamptz default now()`
+- Grants for `anon` + `authenticated` + `service_role` (matching existing `shopping_items` public-access pattern)
+- RLS enabled with public read/insert/update/delete policies (same model used today for `shopping_items`)
 
-A mobile-first Italian PWA-style web app with three tabs (Preparazione, Shopping Mode, Storico), minimalist design, dark/light mode toggle, and a fixed bottom navigation bar optimized for one-handed use. Data persists in Lovable Cloud; two n8n webhooks handle AI parsing and route optimization.
+### 2. API layer (`src/lib/api.ts`)
+Add:
+- `type Meal = { tipo: string; descrizione: string; macro: string }`
+- `type MealPlanDay = { id: string; giorno: string; pasti: Meal[]; created_at: string }`
+- `fetchMealPlan()` → returns days ordered Lun→Dom
+- `uploadMealPlanImage(file)` → POST multipart to `https://n8n.n8n-boostia.uk/webhook/pianoalimentare`, normalize `{ menu: [...] }`, insert rows
+- `deleteMealPlan()` → delete all rows
 
-## 1. Backend (Lovable Cloud)
+### 3. Routing & navigation
+- New route `src/routes/menu.tsx` = homepage
+- `src/routes/index.tsx` redirect changes from `/preparazione` → `/menu`
+- Update `BottomNav.tsx` tabs to:
+  1. Menu → `/menu` (UtensilsCrossed icon)
+  2. Spesa → `/preparazione` (ClipboardList icon)
+  3. In Negozio → `/shopping` (ShoppingCart icon)
+- Keep `/storico` reachable (link from a small "Storico" entry in the Spesa header, since the bottom bar only shows 3 tabs per the spec). I will move the Storico entry point into the Spesa page header to avoid losing access.
 
-Enable Lovable Cloud, then create a single migration:
+### 4. Menu page UX
+- TanStack Query `useQuery(['meal_plan'], fetchMealPlan)`
+- Header row: page title "Il tuo menu" + small settings/refresh icon (gear) on the right → opens AlertDialog with "Elimina Piano Attuale"
+- **Empty state**: centered card, friendly copy in Italian, big primary button "Carica Piano Alimentare" opening a hidden `<input type="file" accept="image/*" capture="environment">`. Spinner while uploading. Toast on success/error.
+- **Populated state**: shadcn `Accordion type="single" collapsible` with one item per day (Lun…Dom). `defaultValue` computed from `new Date().getDay()` mapping `0→Domenica, 1→Lunedì, …`. Days missing from DB are skipped.
+- Each accordion content renders the 5 meals chronologically (order from `pasti` array) as white `Card`s with subtle shadow:
+  - Bold green meal type with emoji (☕ Colazione, 🥐 Spuntino, 🍝 Pranzo, 🍎 Merenda, 🍽️ Cena) — emoji picked from `tipo` via a small map
+  - `descrizione` in dark gray
+  - Macros badge bottom-right: bg `bg-muted`, bold uppercase text, rounded
 
-- Table `public.shopping_items`
-  - `id uuid pk default gen_random_uuid()`
-  - `prodotto text not null`
-  - `quantita text`
-  - `categoria text`
-  - `preso boolean not null default false`
-  - `extra boolean not null default false`
-  - `status text not null default 'active'` with CHECK in ('active','archived')
-  - `created_at timestamptz not null default now()`
-  - `archived_at timestamptz` (set when archived, used for Storico grouping)
-- Grants to `authenticated` and `service_role`; also `anon` since this app is single-user demo with no auth required by the spec.
-- Enable RLS with permissive policies (no auth in spec) — public read/write. We'll note this trade-off; can be tightened later if auth is added.
+### 5. Styling
+Reuse existing tokens (primary green, `bg-card`, `shadow`, `rounded-xl`). No new colors. Mobile-first, max-w-md, safe-area padding consistent with current pages.
 
-No auth required by the spec, so we skip the `_authenticated/` layout.
+### Files touched
+- `supabase/migrations/<new>.sql` (new)
+- `src/lib/api.ts` (extend)
+- `src/routes/menu.tsx` (new)
+- `src/routes/index.tsx` (redirect target)
+- `src/components/BottomNav.tsx` (tabs + icons + labels)
+- `src/routes/preparazione.tsx` (add small "Storico" link in header so /storico stays reachable)
 
-## 2. Routes (TanStack Start)
-
-- `src/routes/__root.tsx` — keep shell; add ThemeProvider (class-based dark mode via `next-themes`-style toggle stored in localStorage), QueryClientProvider already in place, Toaster (sonner), and a mobile container with bottom nav rendered inside the layout.
-- `src/routes/index.tsx` — redirect to `/preparazione`.
-- `src/routes/preparazione.tsx` — list management + AI upload + manual add + weekly reset.
-- `src/routes/shopping.tsx` — supermarket select, optimize route, accordion of aisles with large checkboxes.
-- `src/routes/storico.tsx` — archived items grouped by date.
-
-Bottom nav component highlights active tab using `activeProps`.
-
-## 3. Server Functions
-
-Files under `src/lib/`:
-
-- `shopping.functions.ts` — `listActive`, `listArchived`, `addManualItem`, `addAiItems(items[])`, `togglePreso(id, value)`, `archiveActive()`. All use server publishable Supabase client (no auth in spec).
-- `webhooks.functions.ts`:
-  - `uploadListImage` — accepts base64 file + filename + mimeType, rebuilds FormData server-side, POSTs to `https://n8n.n8n-boostia.uk/webhook/listaspesa`, returns parsed items array.
-  - `optimizeRoute` — POSTs `{ supermercato, lista_prodotti }` to `https://n8n.n8n-boostia.uk/webhook/guida`, returns `percorso_ottimizzato`.
-
-Doing the webhook calls server-side avoids any CORS/network surprises from the browser and keeps the client thin.
-
-## 4. UI / Components
-
-- `BottomNav` — three-tab fixed bar with icons (Lucide: ClipboardList, ShoppingCart, History) + Italian labels.
-- `ThemeToggle` — sun/moon in top corner.
-- `ItemRow` (Preparazione) — checkbox-less row showing prodotto, quantita, categoria badge, and a small tag: "AI" (default) or "Extra" (when `extra=true`); swipe/delete optional, kept simple with a trash icon.
-- `AisleAccordion` (Shopping Mode) — shadcn `Accordion`, each section shows `reparto`, `ordine` chip, optional `note_reparto`, and tappable item rows with large (h-7 w-7) checkbox; checked items get `line-through opacity-50 transition`.
-- `UploadButton` — file input, shows spinner while uploading; uses TanStack Query mutation.
-- `OptimizeButton` — large primary CTA; spinner state.
-- `EndWeekButton` — confirmation dialog before archiving.
-
-All forms validated with `zod`. Toaster for success/error feedback (Italian copy).
-
-## 5. Data Flow (TanStack Query)
-
-- `useQuery(['items','active'])` → `listActive`
-- `useQuery(['items','archived'])` → `listArchived`
-- `useQuery(['route', supermercato])` enabled on demand
-- Mutations invalidate the relevant keys; `togglePreso` does optimistic update so the checkbox feels instant.
-
-## 6. Theming
-
-Update `src/styles.css` with a refined minimalist palette (light + dark) — single accent (warm green for "fresh groceries" feel), large readable spacing, rounded-2xl cards, soft shadows. Mobile-first: max-w-md container centered, bottom nav fixed, content padded for the nav height.
-
-## 7. Italian Copy (key strings)
-
-- Tabs: Preparazione / Shopping Mode / Storico
-- Buttons: "Carica foto lista", "Aggiungi manualmente", "Termina Spesa Settimanale", "Ottimizza Percorso"
-- Empty states: "Nessun prodotto in lista", "Nessuna spesa archiviata"
-- Toasts: "Lista importata", "Prodotto aggiunto", "Percorso pronto", "Spesa archiviata"
-
-## Technical Notes
-
-- Webhook upload uses base64 transport client→server, then server reconstructs `FormData` with a `Blob` for the actual POST.
-- `togglePreso` is optimistic via `useMutation` `onMutate`.
-- Storico groups by `date(archived_at ?? created_at)` client-side using `Intl.DateTimeFormat('it-IT')`.
-- Dark mode toggles `.dark` on `<html>`; persisted in localStorage; SSR-safe via a tiny inline script in `__root.tsx` head.
-- Single-user, no auth — RLS policies allow anon access (documented trade-off).
-
-## Out of Scope
-
-- Authentication / multi-user
-- Item editing after creation (only add / toggle / archive)
-- Offline support / installable PWA manifest (can add later)
+### Out of scope
+- No changes to existing Preparazione/Shopping/Storico logic beyond the header link.
+- No auth — keeps current public-access model.

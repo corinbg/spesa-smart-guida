@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      meal_plan: {
+        Row: {
+          created_at: string
+          giorno: string
+          id: string
+          pasti: Json
+        }
+        Insert: {
+          created_at?: string
+          giorno: string
+          id?: string
+          pasti?: Json
+        }
+        Update: {
+          created_at?: string
+          giorno?: string
+          id?: string
+          pasti?: Json
+        }
+        Relationships: []
+      }
       shopping_items: {
         Row: {
           archived_at: string | null

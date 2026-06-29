@@ -132,3 +132,106 @@ export async function optimizeRoute(
     json?.percorso_ottimizzato ?? json?.[0]?.percorso_ottimizzato ?? [];
   return [...groups].sort((a, b) => (a.ordine ?? 0) - (b.ordine ?? 0));
 }
+
+// ============ Meal Plan ============
+
+export type Meal = {
+  tipo: string;
+  descrizione: string;
+  macro: string;
+};
+
+export type MealPlanDay = {
+  id: string;
+  giorno: string;
+  pasti: Meal[];
+  created_at: string;
+};
+
+const MEAL_TABLE = "meal_plan" as const;
+
+export const GIORNI_ORDER = [
+  "Lunedì",
+  "Martedì",
+  "Mercoledì",
+  "Giovedì",
+  "Venerdì",
+  "Sabato",
+  "Domenica",
+] as const;
+
+function normalizeGiorno(g: string): string {
+  const s = g.trim().toLowerCase();
+  const map: Record<string, string> = {
+    lunedi: "Lunedì",
+    "lunedì": "Lunedì",
+    martedi: "Martedì",
+    "martedì": "Martedì",
+    mercoledi: "Mercoledì",
+    "mercoledì": "Mercoledì",
+    giovedi: "Giovedì",
+    "giovedì": "Giovedì",
+    venerdi: "Venerdì",
+    "venerdì": "Venerdì",
+    sabato: "Sabato",
+    domenica: "Domenica",
+  };
+  return map[s] ?? g;
+}
+
+export async function fetchMealPlan(): Promise<MealPlanDay[]> {
+  const { data, error } = await supabase
+    .from(MEAL_TABLE)
+    .select("*")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  const rows = (data ?? []) as Array<{
+    id: string;
+    giorno: string;
+    pasti: unknown;
+    created_at: string;
+  }>;
+  const days: MealPlanDay[] = rows.map((r) => ({
+    id: r.id,
+    giorno: normalizeGiorno(r.giorno),
+    pasti: Array.isArray(r.pasti) ? (r.pasti as Meal[]) : [],
+    created_at: r.created_at,
+  }));
+  days.sort(
+    (a, b) =>
+      GIORNI_ORDER.indexOf(a.giorno as (typeof GIORNI_ORDER)[number]) -
+      GIORNI_ORDER.indexOf(b.giorno as (typeof GIORNI_ORDER)[number]),
+  );
+  return days;
+}
+
+const WEBHOOK_PIANO = "https://n8n.n8n-boostia.uk/webhook/pianoalimentare";
+
+export async function uploadMealPlanImage(file: File): Promise<MealPlanDay[]> {
+  const fd = new FormData();
+  fd.append("file", file, file.name);
+  const res = await fetch(WEBHOOK_PIANO, { method: "POST", body: fd });
+  if (!res.ok) throw new Error(`Errore upload piano (${res.status})`);
+  const json = await res.json();
+  const root = Array.isArray(json) ? json[0] : json;
+  const menu: Array<{ giorno: string; pasti: Meal[] }> =
+    root?.menu ?? root?.data?.menu ?? [];
+  if (!menu.length) return [];
+  const rows = menu.map((d) => ({
+    giorno: normalizeGiorno(d.giorno),
+    pasti: (d.pasti ?? []) as unknown as Meal[],
+  }));
+  // Clear existing plan first
+  await deleteMealPlan();
+  const { error } = await supabase.from(MEAL_TABLE).insert(rows);
+  if (error) throw error;
+  return fetchMealPlan();
+}
+
+export async function deleteMealPlan() {
+  const { error } = await supabase
+    .from(MEAL_TABLE)
+    .delete()
+    .not("id", "is", null);
+  if (error) throw error;
+}
