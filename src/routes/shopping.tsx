@@ -1,17 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, MapPin, RotateCcw, Sparkles } from "lucide-react";
+import { MapPin, RotateCcw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   fetchActive,
-  optimizeRoute,
   togglePreso,
   type RepartoGroup,
   type ShoppingItem,
 } from "@/lib/api";
-import { getCategoryIcon } from "@/lib/categories";
+import { buildRoute, getCategoryIcon } from "@/lib/categories";
 import { clearRoute, loadRoute, saveRoute } from "@/lib/route-storage";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -74,26 +73,29 @@ function ShoppingPage() {
     setRoute((r) => (r ? mergePresoStatus(r, items) : r));
   }, [items]);
 
-  const optimizeMut = useMutation({
-    mutationFn: async () => {
-      const unchecked = items.filter((i) => !i.preso);
-      if (unchecked.length === 0) {
-        throw new Error("Nessun prodotto da ottimizzare");
-      }
-      return optimizeRoute(supermercato, unchecked);
-    },
-    onSuccess: (groups) => {
-      setRoute(groups);
-      setRestored(false);
-      if (groups.length === 0) {
-        toast.warning("Nessun percorso restituito");
-      } else {
-        saveRoute(supermercato, groups);
-        toast.success("Percorso pronto 🗺️");
-      }
-    },
-    onError: (e: Error) => toast.error(e.message || "Errore"),
-  });
+  const applyRoute = (market: string, { toastOnEmpty = true } = {}) => {
+    const unchecked = items.filter((i) => !i.preso);
+    if (unchecked.length === 0) {
+      if (toastOnEmpty) toast.error("Nessun prodotto da ottimizzare");
+      return;
+    }
+    const groups = mergePresoStatus(buildRoute(unchecked, market), items);
+    setRoute(groups);
+    setRestored(false);
+    if (groups.length === 0) {
+      toast.warning("Nessun percorso restituito");
+    } else {
+      saveRoute(market, groups);
+      if (toastOnEmpty) toast.success("Percorso pronto 🗺️");
+    }
+  };
+
+  const handleSupermarketChange = (market: string) => {
+    setSupermercato(market);
+    if (route !== null) {
+      applyRoute(market, { toastOnEmpty: false });
+    }
+  };
 
   const toggleMut = useMutation({
     mutationFn: ({ id, preso }: { id: string; preso: boolean }) => togglePreso(id, preso),
@@ -179,7 +181,7 @@ function ShoppingPage() {
               <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Supermercato
               </label>
-              <Select value={supermercato} onValueChange={setSupermercato}>
+              <Select value={supermercato} onValueChange={handleSupermarketChange}>
                 <SelectTrigger className="h-12 rounded-xl border-border bg-card text-base">
                   <SelectValue />
                 </SelectTrigger>
@@ -195,20 +197,11 @@ function ShoppingPage() {
               <Button
                 size="lg"
                 className="mt-4 h-14 w-full text-base"
-                onClick={() => optimizeMut.mutate()}
-                disabled={optimizeMut.isPending || remaining === 0}
+                onClick={() => applyRoute(supermercato)}
+                disabled={remaining === 0}
               >
-                {optimizeMut.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Calcolo percorso...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Ottimizza Percorso
-                  </>
-                )}
+                <Sparkles className="mr-2 h-5 w-5" />
+                Ottimizza Percorso
               </Button>
 
               <p className="mt-3 text-center text-sm font-semibold text-muted-foreground">
@@ -228,19 +221,30 @@ function ShoppingPage() {
           <>
             <section className="retail-card p-4">
               <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <div className="min-w-0 flex-1">
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Percorso attivo
                   </p>
-                  <p className="truncate text-lg font-extrabold text-foreground">{supermercato}</p>
+                  <Select value={supermercato} onValueChange={handleSupermarketChange}>
+                    <SelectTrigger className="h-11 rounded-xl border-border bg-card text-base font-extrabold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPERMARKETS.map((s) => (
+                        <SelectItem key={s} value={s} className="text-base">
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {restored && (
-                    <p className="text-xs text-muted-foreground">Ripristinato dalla sessione</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Ripristinato dalla sessione</p>
                   )}
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="shrink-0 border-primary/30 text-primary"
+                  className="shrink-0 self-end border-primary/30 text-primary"
                   onClick={handleResetRoute}
                 >
                   <RotateCcw className="mr-1.5 h-4 w-4" />

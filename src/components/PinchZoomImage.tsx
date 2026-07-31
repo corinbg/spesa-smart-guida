@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 const MIN_SCALE = 1;
 const MAX_SCALE = 5;
 
-function getTouchDistance(touches: TouchList) {
+function getTouchDistance(touches: React.TouchList | TouchList) {
   if (touches.length < 2) return 0;
   const dx = touches[1].clientX - touches[0].clientX;
   const dy = touches[1].clientY - touches[0].clientY;

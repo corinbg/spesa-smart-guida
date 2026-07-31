@@ -105,32 +105,70 @@ export async function archiveActive() {
 }
 
 const WEBHOOK_LISTA = "https://n8n.n8n-boostia.uk/webhook/listaspesa";
-const WEBHOOK_GUIDA = "https://n8n.n8n-boostia.uk/webhook/guida";
+
+async function fileToCompressedDataUrl(
+  file: File,
+  maxDim = 1280,
+  quality = 0.8,
+): Promise<string> {
+  // Fallback for non-image or environments without canvas
+  if (!file.type.startsWith("image/") || typeof document === "undefined") {
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error("image load failed"));
+    im.src = dataUrl;
+  });
+  const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return dataUrl;
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
+async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+  const res = await fetch(dataUrl);
+  return res.blob();
+}
+
+async function appendCompressedOrOriginal(fd: FormData, file: File): Promise<string | null> {
+  try {
+    const dataUrl = await fileToCompressedDataUrl(file);
+    const blob = await dataUrlToBlob(dataUrl);
+    fd.append("file", blob, "upload.jpg");
+    return dataUrl;
+  } catch {
+    fd.append("file", file, file.name);
+    return null;
+  }
+}
 
 export async function uploadListImage(file: File): Promise<AiItem[]> {
   const fd = new FormData();
-  fd.append("file", file, file.name);
+  await appendCompressedOrOriginal(fd, file);
   const res = await fetch(WEBHOOK_LISTA, { method: "POST", body: fd });
   if (!res.ok) throw new Error(`Errore upload (${res.status})`);
   const json = await res.json();
   const arr = Array.isArray(json) ? json : json?.items ?? json?.data ?? [];
   return arr as AiItem[];
-}
-
-export async function optimizeRoute(
-  supermercato: string,
-  items: ShoppingItem[],
-): Promise<RepartoGroup[]> {
-  const res = await fetch(WEBHOOK_GUIDA, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ supermercato, lista_prodotti: items }),
-  });
-  if (!res.ok) throw new Error(`Errore ottimizzazione (${res.status})`);
-  const json = await res.json();
-  const groups: RepartoGroup[] =
-    json?.percorso_ottimizzato ?? json?.[0]?.percorso_ottimizzato ?? [];
-  return [...groups].sort((a, b) => (a.ordine ?? 0) - (b.ordine ?? 0));
 }
 
 // ============ Meal Plan ============
@@ -210,56 +248,12 @@ export async function fetchMealPlan(): Promise<MealPlanDay[]> {
 
 const WEBHOOK_PIANO = "https://n8n.n8n-boostia.uk/webhook/pianoalimentare";
 
-async function fileToCompressedDataUrl(
-  file: File,
-  maxDim = 1280,
-  quality = 0.8,
-): Promise<string> {
-  // Fallback for non-image or environments without canvas
-  if (!file.type.startsWith("image/") || typeof document === "undefined") {
-    return await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  }
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const im = new Image();
-    im.onload = () => resolve(im);
-    im.onerror = () => reject(new Error("image load failed"));
-    im.src = dataUrl;
-  });
-  const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-  const w = Math.round(img.width * scale);
-  const h = Math.round(img.height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return dataUrl;
-  ctx.drawImage(img, 0, 0, w, h);
-  return canvas.toDataURL("image/jpeg", quality);
-}
-
 export async function uploadMealPlanImage(file: File): Promise<MealPlanDay[]> {
-  // Compress + encode in parallel with the webhook call
-  const [imageDataUrl, webhookJson] = await Promise.all([
-    fileToCompressedDataUrl(file).catch(() => null),
-    (async () => {
-      const fd = new FormData();
-      fd.append("file", file, file.name);
-      const res = await fetch(WEBHOOK_PIANO, { method: "POST", body: fd });
-      if (!res.ok) throw new Error(`Errore upload piano (${res.status})`);
-      return res.json();
-    })(),
-  ]);
+  const fd = new FormData();
+  const imageDataUrl = await appendCompressedOrOriginal(fd, file);
+  const res = await fetch(WEBHOOK_PIANO, { method: "POST", body: fd });
+  if (!res.ok) throw new Error(`Errore upload piano (${res.status})`);
+  const webhookJson = await res.json();
   const root = Array.isArray(webhookJson) ? webhookJson[0] : webhookJson;
   const menu: Array<{ giorno: string; pasti: Meal[] }> =
     root?.menu ?? root?.data?.menu ?? [];

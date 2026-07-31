@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { ShoppingItem } from "@/lib/api";
+import type { RepartoGroup, ShoppingItem } from "@/lib/api";
 
 export const CATEGORIE = [
   "Ortofrutta",
@@ -29,6 +29,54 @@ export const CATEGORIE = [
 ] as const;
 
 export type Categoria = (typeof CATEGORIE)[number];
+
+/** Ordine reparti per supermercato (base comune; da raffinare a mano). */
+const LAYOUT_BASE = [
+  "Ortofrutta",
+  "Pane e Pasticceria",
+  "Dispensa",
+  "Bevande",
+  "Cura Persona e Casa",
+  "Salumi e Formaggi",
+  "Latticini e Uova",
+  "Macelleria",
+  "Pescheria",
+  "Surgelati",
+] as const;
+
+export const LAYOUT: Record<string, string[]> = {
+  Iperal: [...LAYOUT_BASE],
+  Esselunga: [...LAYOUT_BASE],
+  Coop: [...LAYOUT_BASE],
+  Conad: [...LAYOUT_BASE],
+  Lidl: [...LAYOUT_BASE],
+};
+
+export const NOTE_REPARTO: Record<string, string> = {
+  Ortofrutta: "Pesa la verdura prima di proseguire.",
+  "Pane e Pasticceria": "Prendi il pane fresco verso la fine del reparto.",
+  Dispensa: "Controlla scadenze e formati famiglia.",
+  Bevande: "Le casse d'acqua sono spesso in fondo al corridoio.",
+  "Cura Persona e Casa": "Detergenti e igiene nello stesso settore.",
+  "Salumi e Formaggi": "Prendi un numero al banco se serve.",
+  "Latticini e Uova": "Latte e yogurt di solito in fondo al banco frigo.",
+  Macelleria: "Chiedi al banco se non trovi il taglio.",
+  Pescheria: "Tieni il pesce fresco separato dagli altri prodotti.",
+  Surgelati: "Ultimo giro, così non si scongela.",
+};
+
+export const EMOJI_REPARTO: Record<string, string> = {
+  Ortofrutta: "🥬",
+  "Pane e Pasticceria": "🥐",
+  Dispensa: "🍝",
+  Bevande: "🥤",
+  "Cura Persona e Casa": "🧴",
+  "Salumi e Formaggi": "🧀",
+  "Latticini e Uova": "🥛",
+  Macelleria: "🥩",
+  Pescheria: "🐟",
+  Surgelati: "🧊",
+};
 
 const UNCATEGORIZED = "Senza categoria";
 
@@ -51,7 +99,8 @@ const orderIndex = new Map<string, number>(
 );
 
 export function getCategoryIcon(categoria: string): LucideIcon {
-  return CATEGORY_ICONS[categoria] ?? ShoppingBasket;
+  const stripped = categoria.replace(/^\p{Extended_Pictographic}\uFE0F?\s*/u, "").trim();
+  return CATEGORY_ICONS[stripped] ?? CATEGORY_ICONS[categoria] ?? ShoppingBasket;
 }
 
 export function groupItemsByCategory(items: ShoppingItem[]): { categoria: string; items: ShoppingItem[] }[] {
@@ -72,4 +121,21 @@ export function groupItemsByCategory(items: ShoppingItem[]): { categoria: string
       return a.localeCompare(b, "it");
     })
     .map(([categoria, groupItems]) => ({ categoria, items: groupItems }));
+}
+
+export function buildRoute(items: ShoppingItem[], supermercato: string): RepartoGroup[] {
+  const layout = LAYOUT[supermercato] ?? LAYOUT_BASE;
+  const layoutIndex = new Map(layout.map((c, i) => [c, i] as const));
+
+  return groupItemsByCategory(items)
+    .map(({ categoria, items: prodotti }) => {
+      const emoji = EMOJI_REPARTO[categoria];
+      return {
+        reparto: emoji ? `${emoji} ${categoria}` : categoria,
+        ordine: layoutIndex.get(categoria) ?? 999,
+        note_reparto: NOTE_REPARTO[categoria] ?? null,
+        prodotti,
+      };
+    })
+    .sort((a, b) => a.ordine - b.ordine);
 }
