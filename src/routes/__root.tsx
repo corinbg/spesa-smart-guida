@@ -61,26 +61,42 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       {
         name: "viewport",
-        content:
-          "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
+        content: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
       },
       { name: "theme-color", content: "#0a0e14" },
-      { title: "Lista Spesa" },
+      { title: "Spesa Smart" },
       {
         name: "description",
         content: "Pianifica la spesa e naviga il supermercato in modo intelligente.",
       },
-      { property: "og:title", content: "Lista Spesa" },
-      { name: "twitter:title", content: "Lista Spesa" },
-      { name: "description", content: "Spesa Smart Guide is an Italian grocery planner and in-store navigator." },
-      { property: "og:description", content: "Spesa Smart Guide is an Italian grocery planner and in-store navigator." },
-      { name: "twitter:description", content: "Spesa Smart Guide is an Italian grocery planner and in-store navigator." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9ab86f4f-26a1-4fbc-a629-95bba92cab40/id-preview-e13ade79--f9dcfa00-d250-4d09-8f7a-ff3979aa2312.lovable.app-1782411466521.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9ab86f4f-26a1-4fbc-a629-95bba92cab40/id-preview-e13ade79--f9dcfa00-d250-4d09-8f7a-ff3979aa2312.lovable.app-1782411466521.png" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Spesa Smart" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "application-name", content: "Spesa Smart" },
+      { property: "og:title", content: "Spesa Smart" },
+      { name: "twitter:title", content: "Spesa Smart" },
+      {
+        property: "og:description",
+        content: "Pianifica la spesa e naviga il supermercato in modo intelligente.",
+      },
+      {
+        name: "twitter:description",
+        content: "Pianifica la spesa e naviga il supermercato in modo intelligente.",
+      },
+      { property: "og:image", content: "/apple-touch-icon.png" },
+      { name: "twitter:image", content: "/apple-touch-icon.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
     links: [
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+      { rel: "apple-touch-icon-precomposed", href: "/apple-touch-icon.png" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+      { rel: "icon", href: "/favicon.ico" },
+      { rel: "manifest", href: "/manifest.json" },
       { rel: "stylesheet", href: appCss },
       {
         rel: "stylesheet",
@@ -93,7 +109,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
