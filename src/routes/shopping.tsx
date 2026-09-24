@@ -287,17 +287,17 @@ function ShoppingPage() {
               </p>
             </section>
 
-            {route!.length === 0 ? (
+            {displayRoute!.length === 0 ? (
               <div className="retail-card border-2 border-dashed border-border bg-card/60 px-6 py-10 text-center">
                 <p className="text-sm text-muted-foreground">Nessun reparto restituito.</p>
               </div>
             ) : (
               <Accordion
                 type="multiple"
-                defaultValue={route!.map((_, i) => `r-${i}`)}
+                defaultValue={displayRoute!.map((_, i) => `r-${i}`)}
                 className="space-y-3"
               >
-                {route!.map((g, idx) => {
+                {displayRoute!.map((g, idx) => {
                   const totalDept = g.prodotti.length;
                   const doneDept = g.prodotti.filter((p) => p.preso).length;
                   const DeptIcon = getCategoryIcon(g.reparto);
