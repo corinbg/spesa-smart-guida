@@ -32,14 +32,20 @@ import { cn } from "@/lib/utils";
 
 const SUPERMARKETS = ["Iperal", "Esselunga", "Coop", "Conad", "Lidl"] as const;
 
+function sortPresoLast(prodotti: ShoppingItem[]): ShoppingItem[] {
+  return [...prodotti].sort((a, b) => Number(a.preso) - Number(b.preso));
+}
+
 function mergePresoStatus(groups: RepartoGroup[], items: ShoppingItem[]): RepartoGroup[] {
   const presoById = new Map(items.map((i) => [i.id, i.preso]));
   return groups.map((g) => ({
     ...g,
-    prodotti: g.prodotti.map((p) => ({
-      ...p,
-      preso: presoById.get(p.id) ?? p.preso,
-    })),
+    prodotti: sortPresoLast(
+      g.prodotti.map((p) => ({
+        ...p,
+        preso: presoById.get(p.id) ?? p.preso,
+      })),
+    ),
   }));
 }
 
@@ -109,7 +115,9 @@ function ShoppingPage() {
         r
           ? r.map((g) => ({
               ...g,
-              prodotti: g.prodotti.map((p) => (p.id === id ? { ...p, preso } : p)),
+              prodotti: sortPresoLast(
+                g.prodotti.map((p) => (p.id === id ? { ...p, preso } : p)),
+              ),
             }))
           : r,
       );
