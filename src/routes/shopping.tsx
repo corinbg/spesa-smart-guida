@@ -49,6 +49,18 @@ function mergePresoStatus(groups: RepartoGroup[], items: ShoppingItem[]): Repart
   }));
 }
 
+// Reparti con prodotti ancora da prendere in cima (in ordine percorso),
+// reparti completati in fondo.
+function sortGroupsByRemaining(groups: RepartoGroup[]): RepartoGroup[] {
+  return [...groups].sort((a, b) => {
+    const remA = a.prodotti.filter((p) => !p.preso).length;
+    const remB = b.prodotti.filter((p) => !p.preso).length;
+    if (remA === 0 && remB > 0) return 1;
+    if (remB === 0 && remA > 0) return -1;
+    return (a.ordine ?? 0) - (b.ordine ?? 0);
+  });
+}
+
 export const Route = createFileRoute("/shopping")({
   head: () => ({ meta: [{ title: "Shopping Mode — Lista Spesa" }] }),
   component: ShoppingPage,
