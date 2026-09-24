@@ -169,7 +169,17 @@ function ShoppingPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="Al supermercato" subtitle="Shopping Mode" />
+      <PageHeader
+        title="Al supermercato"
+        subtitle="Shopping Mode"
+        trailing={
+          !showSelection && remaining > 0 ? (
+            <span className="inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-extrabold text-primary-foreground shadow-md shadow-primary/25">
+              {remaining} da prendere
+            </span>
+          ) : undefined
+        }
+      />
 
       <div className="retail-section flex-1 space-y-5 px-4 py-5">
         {total > 0 && !showSelection && (
