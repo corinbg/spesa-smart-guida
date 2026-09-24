@@ -154,6 +154,7 @@ function ShoppingPage() {
   const done = total - remaining;
   const showSelection = route === null;
   const isComplete = total > 0 && done === total;
+  const displayRoute = route ? sortGroupsByRemaining(route) : null;
   const celebratedRef = useRef(false);
 
   useEffect(() => {
