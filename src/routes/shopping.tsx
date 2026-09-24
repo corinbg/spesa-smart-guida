@@ -49,6 +49,18 @@ function mergePresoStatus(groups: RepartoGroup[], items: ShoppingItem[]): Repart
   }));
 }
 
+// Reparti con prodotti ancora da prendere in cima (in ordine percorso),
+// reparti completati in fondo.
+function sortGroupsByRemaining(groups: RepartoGroup[]): RepartoGroup[] {
+  return [...groups].sort((a, b) => {
+    const remA = a.prodotti.filter((p) => !p.preso).length;
+    const remB = b.prodotti.filter((p) => !p.preso).length;
+    if (remA === 0 && remB > 0) return 1;
+    if (remB === 0 && remA > 0) return -1;
+    return (a.ordine ?? 0) - (b.ordine ?? 0);
+  });
+}
+
 export const Route = createFileRoute("/shopping")({
   head: () => ({ meta: [{ title: "Shopping Mode — Lista Spesa" }] }),
   component: ShoppingPage,
@@ -142,6 +154,7 @@ function ShoppingPage() {
   const done = total - remaining;
   const showSelection = route === null;
   const isComplete = total > 0 && done === total;
+  const displayRoute = route ? sortGroupsByRemaining(route) : null;
   const celebratedRef = useRef(false);
 
   useEffect(() => {
@@ -156,7 +169,17 @@ function ShoppingPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <PageHeader title="Al supermercato" subtitle="Shopping Mode" />
+      <PageHeader
+        title="Al supermercato"
+        subtitle="Shopping Mode"
+        trailing={
+          !showSelection && remaining > 0 ? (
+            <span className="inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-extrabold text-primary-foreground shadow-md shadow-primary/25">
+              {remaining} da prendere
+            </span>
+          ) : undefined
+        }
+      />
 
       <div className="retail-section flex-1 space-y-5 px-4 py-5">
         {total > 0 && !showSelection && (
@@ -264,17 +287,17 @@ function ShoppingPage() {
               </p>
             </section>
 
-            {route!.length === 0 ? (
+            {displayRoute!.length === 0 ? (
               <div className="retail-card border-2 border-dashed border-border bg-card/60 px-6 py-10 text-center">
                 <p className="text-sm text-muted-foreground">Nessun reparto restituito.</p>
               </div>
             ) : (
               <Accordion
                 type="multiple"
-                defaultValue={route!.map((_, i) => `r-${i}`)}
+                defaultValue={displayRoute!.map((_, i) => `r-${i}`)}
                 className="space-y-3"
               >
-                {route!.map((g, idx) => {
+                {displayRoute!.map((g, idx) => {
                   const totalDept = g.prodotti.length;
                   const doneDept = g.prodotti.filter((p) => p.preso).length;
                   const DeptIcon = getCategoryIcon(g.reparto);
