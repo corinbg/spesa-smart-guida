@@ -115,7 +115,9 @@ function ShoppingPage() {
         r
           ? r.map((g) => ({
               ...g,
-              prodotti: g.prodotti.map((p) => (p.id === id ? { ...p, preso } : p)),
+              prodotti: sortPresoLast(
+                g.prodotti.map((p) => (p.id === id ? { ...p, preso } : p)),
+              ),
             }))
           : r,
       );
