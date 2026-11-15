@@ -47,11 +47,15 @@ export async function fetchArchived(): Promise<ShoppingItem[]> {
   return (data ?? []) as ShoppingItem[];
 }
 
-export async function addManualItem(input: { prodotto: string; quantita?: string }) {
+export async function addManualItem(input: {
+  prodotto: string;
+  quantita?: string;
+  categoria?: string | null;
+}) {
   const { error } = await supabase.from(TABLE).insert({
     prodotto: input.prodotto,
     quantita: input.quantita || null,
-    categoria: null,
+    categoria: input.categoria?.trim() || null,
     extra: true,
     status: "active",
   });

@@ -66,6 +66,7 @@ export const Route = createFileRoute("/preparazione")({
 const manualSchema = z.object({
   prodotto: z.string().trim().min(1, "Inserisci un nome").max(80),
   quantita: z.string().trim().max(40).optional(),
+  categoria: z.string().optional(),
 });
 
 const editSchema = z.object({
@@ -84,6 +85,7 @@ function PreparazionePage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [prodotto, setProdotto] = useState("");
   const [quantita, setQuantita] = useState("");
+  const [categoria, setCategoria] = useState("");
 
   const uploadMut = useMutation({
     mutationFn: uploadListImage,
@@ -105,6 +107,7 @@ function PreparazionePage() {
       qc.invalidateQueries({ queryKey: ["items", "active"] });
       setProdotto("");
       setQuantita("");
+      setCategoria("");
       toast.success("✅ Prodotto aggiunto");
     },
     onError: () => toast.error("Errore nell'aggiunta"),
@@ -133,7 +136,7 @@ function PreparazionePage() {
 
   const onAddManual = (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = manualSchema.safeParse({ prodotto, quantita });
+    const parsed = manualSchema.safeParse({ prodotto, quantita, categoria });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Dati non validi");
       return;
@@ -219,6 +222,24 @@ function PreparazionePage() {
                 className="flex-1"
                 maxLength={40}
               />
+              <Select
+                value={categoria || "__none__"}
+                onValueChange={(v) => setCategoria(v === "__none__" ? "" : v)}
+              >
+                <SelectTrigger className="h-11 w-[44%] shrink-0 rounded-xl" aria-label="Categoria">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Senza categoria</SelectItem>
+                  {CATEGORIE.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end">
               <Button
                 type="submit"
                 size="lg"
@@ -234,6 +255,7 @@ function PreparazionePage() {
               </Button>
             </div>
           </form>
+
         </section>
 
         {/* Items list grouped by category */}
