@@ -1,9 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { UtensilsCrossed, ClipboardList, ShoppingCart } from "lucide-react";
+import { ClipboardList, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { to: "/menu", label: "Menu", Icon: UtensilsCrossed },
   { to: "/preparazione", label: "Spesa", Icon: ClipboardList },
   { to: "/shopping", label: "In Negozio", Icon: ShoppingCart },
 ] as const;

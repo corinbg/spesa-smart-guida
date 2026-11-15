@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 import { buildRoute, getCategoryIcon } from "@/lib/categories";
 import { clearRoute, loadRoute, saveRoute } from "@/lib/route-storage";
+import { FinishShopping } from "@/components/FinishShopping";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -62,7 +63,14 @@ function sortGroupsByRemaining(groups: RepartoGroup[]): RepartoGroup[] {
 }
 
 export const Route = createFileRoute("/shopping")({
-  head: () => ({ meta: [{ title: "Shopping Mode — Lista Spesa" }] }),
+  head: () => ({ meta: [
+    { title: "In Negozio — Spesa Smart" },
+    { name: "description", content: "Segui i reparti, spunta i prodotti e salva il totale dello scontrino." },
+    { property: "og:title", content: "In Negozio — Spesa Smart" },
+    { property: "og:description", content: "Segui i reparti, spunta i prodotti e salva il totale dello scontrino." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: ShoppingPage,
 });
 
@@ -287,17 +295,17 @@ function ShoppingPage() {
               </p>
             </section>
 
-            {displayRoute!.length === 0 ? (
+            {displayRoute?.length === 0 ? (
               <div className="retail-card border-2 border-dashed border-border bg-card/60 px-6 py-10 text-center">
                 <p className="text-sm text-muted-foreground">Nessun reparto restituito.</p>
               </div>
             ) : (
               <Accordion
                 type="multiple"
-                defaultValue={displayRoute!.map((_, i) => `r-${i}`)}
+                defaultValue={displayRoute?.map((_, i) => `r-${i}`)}
                 className="space-y-3"
               >
-                {displayRoute!.map((g, idx) => {
+                {displayRoute?.map((g, idx) => {
                   const totalDept = g.prodotti.length;
                   const doneDept = g.prodotti.filter((p) => p.preso).length;
                   const DeptIcon = getCategoryIcon(g.reparto);
@@ -391,6 +399,7 @@ function ShoppingPage() {
             )}
           </>
         )}
+        {total > 0 && <FinishShopping supermarket={supermercato} onArchived={() => { setRoute(null); setRestored(false); }} />}
       </div>
     </div>
   );

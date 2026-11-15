@@ -8,7 +8,6 @@ import {
   Trash2,
   Sparkles,
   PencilLine,
-  CheckCircle2,
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -17,7 +16,6 @@ import { z } from "zod";
 import {
   addAiItems,
   addManualItem,
-  archiveActive,
   deleteItem,
   fetchActive,
   updateItem,
@@ -25,7 +23,7 @@ import {
   type ShoppingItem,
 } from "@/lib/api";
 import { CATEGORIE, groupItemsByCategory } from "@/lib/categories";
-import { clearRoute } from "@/lib/route-storage";
+import { FinishShopping } from "@/components/FinishShopping";
 import { PageHeader } from "@/components/PageHeader";
 import { CategoryHeader } from "@/components/CategoryHeader";
 import { Button } from "@/components/ui/button";
@@ -46,20 +44,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 
 export const Route = createFileRoute("/preparazione")({
-  head: () => ({ meta: [{ title: "Preparazione — Lista Spesa" }] }),
+  head: () => ({ meta: [
+    { title: "Spesa — Spesa Smart" },
+    { name: "description", content: "Prepara la tua lista della spesa e archivia il totale dello scontrino." },
+    { property: "og:title", content: "Spesa — Spesa Smart" },
+    { property: "og:description", content: "Prepara la tua lista della spesa e archivia il totale dello scontrino." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: PreparazionePage,
 });
 
@@ -116,16 +111,6 @@ function PreparazionePage() {
   const deleteMut = useMutation({
     mutationFn: deleteItem,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["items", "active"] }),
-  });
-
-  const archiveMut = useMutation({
-    mutationFn: archiveActive,
-    onSuccess: () => {
-      clearRoute();
-      qc.invalidateQueries({ queryKey: ["items"] });
-      toast.success(`🎉 Spesa archiviata! Ottimo lavoro!`);
-    },
-    onError: () => toast.error("Errore nell'archiviazione"),
   });
 
   const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -295,35 +280,7 @@ function PreparazionePage() {
           )}
         </section>
 
-        {items.length > 0 && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="lg" className="w-full border-primary/30 text-primary">
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Termina Spesa Settimanale
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="rounded-2xl">
-              <AlertDialogHeader>
-                <AlertDialogTitle>Archiviare la spesa?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tutti i prodotti attivi saranno spostati nello Storico. Potrai consultarli
-                  ma non modificarli.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="rounded-xl">Annulla</AlertDialogCancel>
-                <AlertDialogAction
-                  className="rounded-xl"
-                  onClick={() => archiveMut.mutate()}
-                  disabled={archiveMut.isPending}
-                >
-                  Archivia
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        {items.length > 0 && <FinishShopping />}
       </div>
     </div>
   );

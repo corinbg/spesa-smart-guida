@@ -1,0 +1,4 @@
+- [ ] Rimuovere Menu e aprire Spesa all’avvio.
+- [ ] Archiviare la spesa con totale facoltativo dello scontrino.
+- [ ] Mostrare importi e riepilogo mensile nello Storico.
+- [ ] Verificare salvataggio, lettura e navigazione.

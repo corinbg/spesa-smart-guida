@@ -48,6 +48,7 @@ export type Database = {
           preso: boolean
           prodotto: string
           quantita: string | null
+          receipt_id: string | null
           status: string
         }
         Insert: {
@@ -59,6 +60,7 @@ export type Database = {
           preso?: boolean
           prodotto: string
           quantita?: string | null
+          receipt_id?: string | null
           status?: string
         }
         Update: {
@@ -70,7 +72,37 @@ export type Database = {
           preso?: boolean
           prodotto?: string
           quantita?: string | null
+          receipt_id?: string | null
           status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_items_receipt_id_fkey"
+            columns: ["receipt_id"]
+            isOneToOne: false
+            referencedRelation: "shopping_receipts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopping_receipts: {
+        Row: {
+          archived_at: string
+          id: string
+          supermarket: string | null
+          total_cents: number | null
+        }
+        Insert: {
+          archived_at?: string
+          id?: string
+          supermarket?: string | null
+          total_cents?: number | null
+        }
+        Update: {
+          archived_at?: string
+          id?: string
+          supermarket?: string | null
+          total_cents?: number | null
         }
         Relationships: []
       }
@@ -79,7 +111,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      archive_shopping: {
+        Args: { p_supermarket?: string; p_total_cents?: number }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

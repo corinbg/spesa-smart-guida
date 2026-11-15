@@ -7,7 +7,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { lazy, useEffect, useRef, type ReactNode } from "react";
+import { lazy, useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -86,8 +86,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content: "Pianifica la spesa e naviga il supermercato in modo intelligente.",
       },
-      { property: "og:image", content: "/apple-touch-icon.png" },
-      { name: "twitter:image", content: "/apple-touch-icon.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -128,16 +126,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const router = useRouter();
-  const didSetHome = useRef(false);
-
-  useEffect(() => {
-    if (didSetHome.current) return;
-    didSetHome.current = true;
-    if (router.state.location.pathname !== "/menu") {
-      void router.navigate({ to: "/menu", replace: true });
-    }
-  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
